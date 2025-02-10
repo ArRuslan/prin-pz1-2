@@ -71,7 +71,7 @@ def task_c1() -> None:
         day, month, year = date_
         day = int(day)
         month = int(month)
-        year = int(year)
+        int(year)
     except ValueError:
         print("Invalid date!")
         return
@@ -105,6 +105,19 @@ def task_c2() -> None:
     print("yes")
 
 
+def _swap_numbers(num: int, pos1: int, pos2: int) -> int:
+    num_at_pos1 = (num // (10 ** pos1)) % 10
+    num_at_pos2 = (num // (10 ** pos2)) % 10
+
+    num -= num_at_pos1 * (10 ** pos1)
+    num -= num_at_pos2 * (10 ** pos2)
+
+    num += num_at_pos2 * (10 ** pos1)
+    num += num_at_pos1 * (10 ** pos2)
+
+    return num
+
+
 def task_c3() -> None:
     """ Дано чотиризначне число. Поміняйте місцями найменшу і найбільшу цифри """
     num = _input_number("Number: ")
@@ -129,12 +142,7 @@ def task_c3() -> None:
 
         pos += 1
 
-    result -= mx * (10 ** mx_pos)
-    result -= mn * (10 ** mn_pos)
-
-    result += mn * (10 ** mx_pos)
-    result += mx * (10 ** mn_pos)
-
+    result = _swap_numbers(result, mx_pos, mn_pos)
     print(result)
 
 
@@ -149,47 +157,51 @@ def task_c4() -> None:
     print(abs(hours_angle - minutes_angle))
 
 
-
 def task_c5() -> None:
     """ Дано чотиризначне число. Переставте місцями цифри так, щоб спочатку виявилися цифри, менші п'яти """
-    # TODO
+    num = _input_number("4-digit number: ")
+
+    pos_to_swap = 3
+    for pos in range(3, -1, -1):
+        dig = (num // (10 ** pos)) % 10
+        if dig < 5:
+            if pos != pos_to_swap:
+                num = _swap_numbers(num, pos, pos_to_swap)
+            pos_to_swap -= 1
+
+    print(num)
 
 
 def task_d1() -> None:
     """ Вивести на екран числа від 1000 до 9999 такі, що всі цифри різнi """
-    choices = list(range(0, 10))
-    result = 0
+    for i in range(1000, 9999 + 1):
+        unique = True
+        for pos in range(4):
+            num = (i // (10 ** pos)) % 10
+            for check_pos in range(pos + 1, 4):
+                if (i // (10 ** check_pos)) % 10 == num:
+                    unique = False
+                    break
 
-    for i in range(4):
-        if i == 3 and choices[0] == 0:
-            choices.remove(0)
+            if not unique:
+                break
 
-        num = random.choice(choices)
-        choices.remove(num)
-        result += num * (10 ** i)
-
-    print(result)
+        if unique:
+            print(i)
 
 
 def task_d2() -> None:
     """ Вивести на екран числа від 1000 до 9999 такі, що серед чисел є цифра 3 """
-    choices = list(range(0, 10))
-    result = 0
+    for i in range(1000, 9999 + 1):
+        has_3 = False
+        for pos in range(4):
+            num = (i // (10 ** pos)) % 10
+            if num == 3:
+                has_3 = True
+                break
 
-    result_has_3 = False
-    for i in range(4):
-        if i == 3 and choices[0] == 0:
-            choices.remove(0)
-        if i == 3 and not result_has_3:
-            choices = [3]
-
-        num = random.choice(choices)
-        if num == 3:
-            result_has_3 = True
-
-        result += num * (10 ** i)
-
-    print(result)
+        if has_3:
+            print(i)
 
 
 def task_d3() -> None:
@@ -458,9 +470,60 @@ def task_g1() -> None:
         print()
 
 
+def _check_all_zeros(mat: list[list[int]], x: int, y: int, w: int, h: int) -> bool:
+    if x + w + 1 <= 9:
+        w += 1
+    if y + h + 1 <= 9:
+        h += 1
+    if x >= 1:
+        x -= 1
+    if y >= 1:
+        y -= 1
+
+    for i in range(x, x + w + 1):
+        for j in range(y, y + h + 1):
+            if mat[i][j] != 0:
+                return False
+
+    return True
+
+
 def task_g2() -> None:
     """ Сформувати випадковим чином початкову позицію кораблів для гри "Морський бій" (всього 15 кораблів, один 5-палубний, два 4-палубних, три 3-палубних, чотири 2-палубних, п'ять 1-палубних) на поле 10х10 так, щоб вони не торкалися одне одного """
-    # TODO
+    mat = [
+        [0 for _ in range(10)]
+        for _ in range(10)
+    ]
+
+    for ship_size in range(5, 0, -1):
+        for _ in range(6 - ship_size):
+            while True:
+                x, y = random.choices(range(10), k=2)
+                if random.choice([0, 1]):
+                    if y + ship_size >= 10:
+                        continue
+                    if not _check_all_zeros(mat, x, y, 1, ship_size):
+                        continue
+                    for i in range(ship_size):
+                        mat[x][y + i] = ship_size
+                    break
+                else:
+                    if x + ship_size >= 10:
+                        continue
+                    if not _check_all_zeros(mat, x, y, ship_size, 1):
+                        continue
+                    for i in range(ship_size):
+                        mat[x + i][y] = ship_size
+                    break
+
+            #_print_mat(mat)
+
+    for row in mat:
+        for idx, num in enumerate(row):
+            if not num:
+                row[idx] = "-"
+
+    _print_mat(mat)
 
 
 def main() -> None:
@@ -471,7 +534,9 @@ def main() -> None:
         #task_d1, task_d2, task_d3, task_d4, task_d5,
         #task_e1, task_e2, task_e3, task_e4, task_e5,
         #task_f1, task_f2, task_f3, task_f4, task_f5,
-        task_g1, task_g2,
+        #task_g1, task_g2,
+
+        task_g2,
     )
 
     for task_func in task_funcs:
