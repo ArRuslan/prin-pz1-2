@@ -402,10 +402,9 @@ def task_f5() -> None:
     print("Matrix: ")
     _print_mat(mat)
 
-    # TODO: this is incorrect
-    mat.reverse()
-    for row in mat:
-        row.reverse()
+    for i in range(matrix_size):
+        for j in range(i):
+            mat[i][j], mat[j][i] = mat[j][i], mat[i][j]
 
     print("New matrix: ")
     _print_mat(mat)
@@ -535,7 +534,7 @@ def main() -> None:
         #task_f1, task_f2, task_f3, task_f4, task_f5,
         #task_g1, task_g2,
 
-        task_g2,
+        task_f5,
     )
 
     for task_func in task_funcs:
