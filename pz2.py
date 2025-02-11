@@ -78,10 +78,22 @@ def task_a4() -> None:
         print(s)
 
 
+def task_a5_gen(target_num: int, current_num: int = 0) -> Generator[int, None, None]:
+    if target_num == 0:
+        yield current_num
+
+    for i in range(1, 10):
+        if i > target_num:
+            return
+
+        yield from task_a5_gen(target_num - i, current_num * 10 + i)
+
+
 def task_a5() -> None:
     """Написати генератор, який повертає список чисел, у яких сума цифр дорівнює заданому числу"""
-    # TODO
-
+    target = int(input("Target number: "))
+    for num in task_a5_gen(target):
+        print(num)
 
 def task_b1_dec(func: Callable) -> Callable:
     @wraps(func)
