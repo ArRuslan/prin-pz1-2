@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import inspect
 import re
 import time
 from collections import Counter
+from contextlib import contextmanager
 from functools import wraps
-from typing import Callable, NoReturn, Generator
+from typing import Callable, NoReturn, Generator, Any
 
 
 def task_a1_generator(arr: list[int]) -> Generator[int, None, None]:
@@ -330,9 +332,105 @@ def task_f1() -> None:
         print(node)
 
 
+class ValidatedArg:
+    _DEFAULT_MISSING = object()
+
+    def __init__(
+            self, type_: type | None = None, gt: int | None = None, lt: int | None = None,
+            min_len: int | None = None, max_len: int | None = None, default: Any | None = _DEFAULT_MISSING,
+            nullable: bool | None = None,
+    ) -> None:
+        self.type = type_
+        self.gt = gt
+        self.lt = lt
+        self.min_len = min_len
+        self.max_len = max_len
+        self.default = default
+        self.nullable = nullable or default is None
+
+    def check(self, value: Any) -> None:
+        if self.type is not None:
+            if not isinstance(value, (self.type,) if not self.nullable else (self.type, type(None),)):
+                raise TypeError(f"Argument has invalid type: expected {self.type.__name__}, got {value.__class__.__name__}")
+        if not self.nullable and value is None:
+            raise TypeError(f"Non-nullable argument is None")
+
+        if self.gt is not None and value is not None and value <= self.gt:
+            raise ValueError(f"Argument must be bigger than {self.gt}")
+        if self.lt is not None and value >= self.lt:
+            raise ValueError(f"Argument must be less than {self.lt}")
+
+        if self.min_len is not None and value is not None and len(value) < self.min_len:
+            raise ValueError(f"Argument length must be bigger (or equal) than {self.min_len}")
+        if self.max_len is not None and value is not None and len(value) > self.max_len:
+            raise ValueError(f"Argument length must be less (or equal) than {self.max_len}")
+
+
+def validated_func(func: Callable) -> Callable:
+    sig = inspect.signature(func)
+    validators: dict[str, ValidatedArg] = {
+        name: param.default
+        for name, param in sig.parameters.items()
+        if isinstance(param.default, ValidatedArg)
+    }
+    annotations_ = inspect.get_annotations(func, eval_str=True)
+    for name, validator in validators.items():
+        if name not in annotations_:
+            continue
+        validator.type = annotations_[name]
+
+    for name, ann in annotations_.items():
+        if name in validators:
+            continue
+        validators[name] = ValidatedArg(ann)
+
+    @wraps(func)
+    def wrapper(*args, **kwargs) -> ...:
+        bound = sig.bind_partial(*args, **kwargs)
+        for arg in sig.parameters.keys():
+            val = validators.get(arg)
+            if arg not in bound.arguments and (val is None or val.default is val._DEFAULT_MISSING):
+                raise ValueError(f"Missing argument: {arg}")
+            if arg not in bound.arguments:
+                bound.arguments[arg] = val.default
+
+            if val is not None:
+                val.check(bound.arguments[arg])
+
+        return func(*bound.args, **bound.kwargs)
+
+    return wrapper
+
+
+@validated_func
+def task_f2_func(int_arg: int, str_arg: str = ValidatedArg(max_len=10, default=None), arr_arg: list = ValidatedArg(min_len=1)) -> None:
+    print(f"{int_arg=}, {str_arg=}, {arr_arg=}")
+
+
+@contextmanager
+def should_raise(exc_type: type[Exception]) -> None:
+    try:
+        yield
+    except exc_type as e:
+        print(f"Exception was indeed raised: {exc_type.__name__}: {e}")
+    else:
+        print(f"Exception was NOT raised: {exc_type.__name__}")
+
+
 def task_f2() -> None:
     """Реалізувати декоратор (з параметром), перевіряючий параметри функції на правильність (не тільки на тип, а, наприклад, порожнечу, діапазон значень і інші більш цікаві валідатори)"""
-    # TODO
+    task_f2_func(1, "asd", [123, 456])
+    task_f2_func(1, arr_arg=[123, 456])
+    task_f2_func(1, arr_arg=[123])
+
+    with should_raise(TypeError):
+        task_f2_func("1", "asd", [123, 456])
+    with should_raise(ValueError):
+        task_f2_func(1, arr_arg=[])
+    with should_raise(ValueError):
+        task_f2_func(1, "test")
+    with should_raise(ValueError):
+        task_f2_func(1, "testtesttest", [1])
 
 
 def task_f3() -> None:
@@ -363,12 +461,12 @@ def task_f4() -> None:
 
 def main() -> None:
     task_funcs = (
-        task_a1, task_a2, task_a3, task_a4, task_a5,
+        #task_a1, task_a2, task_a3, task_a4, task_a5,
         #task_b1, task_b2, task_b3, task_b4, task_b5,
         #task_c1, task_c2, task_c3, task_c4, task_c5,
         #task_d1, task_d2, task_d3, task_d4, task_d5,
         #task_e1, task_e2, task_e3, task_e4, task_e5,
-        #task_f1, task_f2, task_f3, task_f4,
+        task_f1, task_f2, task_f3, task_f4,
 
         #task_b5,
     )
