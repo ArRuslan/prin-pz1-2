@@ -1,12 +1,23 @@
+from __future__ import annotations
+
+import re
 import time
 from collections import Counter
 from functools import wraps
-from typing import Callable
+from typing import Callable, NoReturn, Generator
+
+
+def task_a1_generator(arr: list[int]) -> Generator[int, None, None]:
+    for el in arr:
+        if el % 2 == 0:
+            yield el
 
 
 def task_a1() -> None:
     """Написати генератор, який повертає тільки парні числа зі списку"""
-    # TODO
+    numbers = map(int, input("Numbers: ").split(" "))
+    for num in task_a1_generator(list(numbers)):
+        print(num)
 
 
 def task_a2() -> None:
@@ -19,9 +30,17 @@ def task_a3() -> None:
     # TODO
 
 
+def task_a4_generator(arr: list[str], ln: int) -> Generator[str, None, None]:
+    for el in arr:
+        if len(el) == ln:
+            yield el
+
+
 def task_a4() -> None:
     """Написати генератор, який на вхід отримує список рядків і повертає рядки, довжина яких дорівнює заданої."""
-    # TODO
+    words = input("Words: ").split(" ")
+    for s in task_a4_generator(words, 5):
+        print(s)
 
 
 def task_a5() -> None:
@@ -108,9 +127,26 @@ def task_b4() -> None:
     print(task_b4_some_text())
 
 
+def task_b5_dec(func: Callable[..., str]) -> Callable[..., str]:
+    @wraps(func)
+    def wrapper(*args, **kwargs) -> str:
+        args = list(sorted(args))
+        print(f"Sorted arguments: {args}")
+        args = filter(lambda arg: arg >= 0, args)
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+@task_b5_dec
+def task_b5_func(*args: int) -> None:
+    print(f"Arguments: {args}")
+
+
 def task_b5() -> None:
     """Написати декоратор, який перед виконанням функції виводить відсортований список її аргументів, а потім виконує функцію лише з її позитивними аргументами"""
-    # TODO
+    task_b5_func(9, -8, 7, 6, 5, -4, 3, -2, -1)
 
 
 def task_c1() -> None:
@@ -149,7 +185,9 @@ def task_c4() -> None:
 
 def task_c5() -> None:
     """Визначити лямбда-функцію для отримання числа Фібоначчі за його індексом."""
-    # TODO
+    fib = lambda n: (1 if n in (1, 2) else fib(n - 1) + fib(n - 2))
+
+    print(fib(10))
 
 
 class Rectangle:
@@ -215,32 +253,81 @@ def task_d5() -> None:
 
 def task_e1() -> None:
     """Розбити рядок на список по символ пробілу (скільки завгодно поспіль)"""
-    # TODO
+    text = input("Text: ")
+    result = re.split(r"\s+", text)
+    print(result)
 
 
 def task_e2() -> None:
     """Перевірити вірність номера кредитної картки"""
-    # TODO
+    card = input("Card number: ")
+    result = re.match(r"^\d{16}$", card)
+    print("Valid" if result is not None else "Invalid")
 
 
 def task_e3() -> None:
     """Витягти дати з рядка"""
-    # TODO
+    # 12.12.2000 asd 123 qwe 12.02.2000 asd 31.02.2000 asd
+    text = input("Text: ")
+    for date in re.findall(r"((?:(?:(?:(?:[01]\d)|(?:2[0-8]))\.02)|(?:(?:[012]\d)|(?:3[01]))\.(?:(?:0[13456789])|(?:1[012])))\.\d{4})", text):
+        print(date)
 
 
 def task_e4() -> None:
     """Перевірити правильність введення e-mail"""
-    # TODO
+    card = input("Email: ")
+    result = re.match(r"^[a-zA-Z\d_-]{1,254}@[a-zA-Z\d_-]{2,255}.[a-zA-Z]{2,20}$", card)
+    print("Valid" if result is not None else "Invalid")
 
 
 def task_e5() -> None:
     """Перевірити валідність українського мобільного номера (починається з "0", 10 цифр або починається з "+380", 13 цифр)"""
-    # TODO
+    card = input("Phone number: ")
+    result = re.match(r"^((?:0\d{9})|(?:\+380\d{9}))$", card)
+    print("Valid" if result is not None else "Invalid")
+
+
+class BinaryTreeNode:
+    def __init__(self, value: int, left: BinaryTreeNode | None = None, right: BinaryTreeNode | None = None) -> None:
+        self.value = value
+        self.left = left
+        self.right = right
+
+
+class BinaryTreeIterator:
+    def __init__(self, tree: BinaryTreeNode) -> None:
+        #self._tree = tree
+        self._current = tree
+        self._stack: list[BinaryTreeNode] = []
+
+    def __iter__(self) -> BinaryTreeIterator:
+        return self
+
+    def __next__(self) -> int:
+        while self._current is not None:
+            self._stack.append(self._current)
+            self._current = self._current.left
+
+        if not self._stack:
+            raise StopIteration
+
+        self._current = self._stack.pop(0)
+        node, self._current = self._current, self._current.right
+
+        return node.value
+
 
 
 def task_f1() -> None:
     """Реалізувати ітератор по бінарному дереву"""
-    # TODO
+    tree = BinaryTreeNode(
+        1,
+        BinaryTreeNode(2),
+        BinaryTreeNode(3, BinaryTreeNode(4)),
+    )
+
+    for node in BinaryTreeIterator(tree):
+        print(node)
 
 
 def task_f2() -> None:
@@ -253,19 +340,37 @@ def task_f3() -> None:
     # TODO
 
 
+class _DisallowInheritanceMeta(type):
+    def __new__(meta, name, bases, class_dict) -> NoReturn:
+        if not bases:
+            return type.__new__(meta, name, bases, class_dict)
+        raise RuntimeError(f"You cant use {name} as a superclass!")
+
+
+class ClassWithoutChildClasses(metaclass=_DisallowInheritanceMeta):
+    def __init__(self) -> None:
+        self.a = 1
+
+
 def task_f4() -> None:
     """Заборонити наслідування класів"""
-    # TODO
+    try:
+        class ThisShouldFail(ClassWithoutChildClasses):
+            ...
+    except RuntimeError as e:
+        print(f"Error was indeed raised: {e.__class__.__name__}: {e}")
 
 
 def main() -> None:
     task_funcs = (
-        #task_a1, task_a2, task_a3, task_a4, task_a5,
+        task_a1, task_a2, task_a3, task_a4, task_a5,
         #task_b1, task_b2, task_b3, task_b4, task_b5,
         #task_c1, task_c2, task_c3, task_c4, task_c5,
-        task_d1, task_d2, task_d3, task_d4, task_d5,
+        #task_d1, task_d2, task_d3, task_d4, task_d5,
         #task_e1, task_e2, task_e3, task_e4, task_e5,
         #task_f1, task_f2, task_f3, task_f4,
+
+        #task_b5,
     )
 
     for task_func in task_funcs:
