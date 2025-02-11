@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import inspect
+import random
 import re
+import string
 import time
 from collections import Counter
 from contextlib import contextmanager
@@ -22,9 +24,40 @@ def task_a1() -> None:
         print(num)
 
 
+def task_a2_generator(password_len: int) -> Generator[str, None, None]:
+    has_letter = False
+    has_number = False
+    has_special = False
+
+    for i in range(password_len):
+        if has_letter and has_number and has_special:
+            yield from random.choices(string.printable, k=password_len - i)
+            return
+
+        chars = ""
+        if not has_letter:
+            chars += string.ascii_letters
+        if not has_number:
+            chars += string.digits
+        if not has_special:
+            chars += string.punctuation
+
+        char = random.choice(chars)
+        if char in string.ascii_letters:
+            has_letter = True
+        if char in string.digits:
+            has_number = True
+        if char in string.punctuation:
+            has_special = True
+
+        yield char
+
+
 def task_a2() -> None:
     """Написати генератор паролів заданої довжини (формат: 1+ символ алфавіту, 1+ цифра, 1+ спецсимвол)."""
-    # TODO
+    ln = int(input("Password length: "))
+    password = "".join(task_a2_generator(ln))
+    print(f"Password: {password!r}")
 
 
 def task_a3() -> None:
@@ -484,10 +517,10 @@ def task_f4() -> None:
 
 def main() -> None:
     task_funcs = (
-        #task_a1, task_a2, task_a3, task_a4, task_a5,
+        task_a1, task_a2, task_a3, task_a4, task_a5,
         #task_b1, task_b2, task_b3, task_b4, task_b5,
         #task_c1, task_c2, task_c3, task_c4, task_c5,
-        task_d1, task_d2, task_d3, task_d4, task_d5,
+        #task_d1, task_d2, task_d3, task_d4, task_d5,
         #task_e1, task_e2, task_e3, task_e4, task_e5,
         #task_f1, task_f2, task_f3, task_f4,
 
