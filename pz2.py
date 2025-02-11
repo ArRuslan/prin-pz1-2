@@ -60,9 +60,16 @@ def task_a2() -> None:
     print(f"Password: {password!r}")
 
 
+def task_a3_gen(strs: list[str]) -> Generator[list[int], None, None]:
+    for s in strs:
+        yield [b for b in s.encode("utf8")]
+
+
 def task_a3() -> None:
     """Написати ітератор і генератор, який на вхід приймає масив рядків, а повертає масив, кожен елемент якого є масивом байт перераховується елементу."""
-    # TODO
+    words = input("Text: ").split(" ")
+    for byte_word in task_a3_gen(words):
+        print(byte_word)
 
 
 def task_a4_generator(arr: list[str], ln: int) -> Generator[str, None, None]:
@@ -529,14 +536,14 @@ def task_f4() -> None:
 
 def main() -> None:
     task_funcs = (
-        task_a1, task_a2, task_a3, task_a4, task_a5,
+        #task_a1, task_a2, task_a3, task_a4, task_a5,
         #task_b1, task_b2, task_b3, task_b4, task_b5,
         #task_c1, task_c2, task_c3, task_c4, task_c5,
         #task_d1, task_d2, task_d3, task_d4, task_d5,
         #task_e1, task_e2, task_e3, task_e4, task_e5,
         #task_f1, task_f2, task_f3, task_f4,
 
-        #task_b5,
+        task_a3,
     )
 
     for task_func in task_funcs:

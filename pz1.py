@@ -431,16 +431,12 @@ def task_g1() -> None:
     for caesar_offset in range(26):
         print(f"Offset: {caesar_offset}, deciphered: ", end="")
         for word in words:
-            add_to_key = 0
             letters = []
             for idx, letter in enumerate([ord(let) for let in word]):
                 if letter in az_range:
                     letter_base = a
                 elif letter in AZ_range:
                     letter_base = A
-                #elif letter == slash:
-                #    add_to_key += 1
-                #    continue
                 else:
                     letters.append(letter)
                     continue
@@ -448,10 +444,6 @@ def task_g1() -> None:
                 letter_num = letter - letter_base
                 letter_num -= caesar_offset
                 letter_num %= 26
-
-                if letter == slash:
-                    add_to_key += 1
-                    continue
 
                 letters.append(letter_base + letter_num)
 
@@ -461,7 +453,8 @@ def task_g1() -> None:
             pos = key % len(letters)
             letters = letters[-pos:] + letters[:-pos]
 
-            key += add_to_key
+            if slash in letters:
+                key += 1
 
             print("".join(map(chr, letters)), end=" ")
 
@@ -492,6 +485,8 @@ def task_g2() -> None:
         [0 for _ in range(10)]
         for _ in range(10)
     ]
+
+    # TODO
 
     for ship_size in range(5, 0, -1):
         for _ in range(6 - ship_size):
@@ -534,7 +529,7 @@ def main() -> None:
         #task_f1, task_f2, task_f3, task_f4, task_f5,
         #task_g1, task_g2,
 
-        task_f5,
+        task_g1,
     )
 
     for task_func in task_funcs:
