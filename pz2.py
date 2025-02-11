@@ -248,9 +248,32 @@ def task_d4() -> None:
     # TODO
 
 
+class ClassAttrsToDict:
+    def __init__(self) -> None:
+        self._dict = {}
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        if key == "_dict":
+            self.__dict__[key] = value
+            return
+        self.__dict__["_dict"][key] = value
+
+    def __getattr__(self, item: str) -> Any:
+        return self.__dict__["_dict"][item]
+
+
 def task_d5() -> None:
     """Реалізувати клас, який під час запису значення атрибута, поміщає його в поле-dict, де ключ - ім'я атрибута"""
-    # TODO
+    obj = ClassAttrsToDict()
+    obj.a = 1
+    obj.b = 2
+    obj.c = 3
+
+    print(f"{obj.a=}")
+    print(f"{obj.b=}")
+    print(f"{obj.c=}")
+
+    print(f"{obj._dict=}")
 
 
 def task_e1() -> None:
@@ -408,7 +431,7 @@ def task_f2_func(int_arg: int, str_arg: str = ValidatedArg(max_len=10, default=N
 
 
 @contextmanager
-def should_raise(exc_type: type[Exception]) -> None:
+def should_raise(exc_type: type[Exception]) -> Generator[None, None, None]:
     try:
         yield
     except exc_type as e:
@@ -464,9 +487,9 @@ def main() -> None:
         #task_a1, task_a2, task_a3, task_a4, task_a5,
         #task_b1, task_b2, task_b3, task_b4, task_b5,
         #task_c1, task_c2, task_c3, task_c4, task_c5,
-        #task_d1, task_d2, task_d3, task_d4, task_d5,
+        task_d1, task_d2, task_d3, task_d4, task_d5,
         #task_e1, task_e2, task_e3, task_e4, task_e5,
-        task_f1, task_f2, task_f3, task_f4,
+        #task_f1, task_f2, task_f3, task_f4,
 
         #task_b5,
     )

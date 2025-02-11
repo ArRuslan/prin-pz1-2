@@ -41,7 +41,6 @@ def task_b1() -> None:
     percent_per_year = _input_number("Per year (%): ")
     per_year = 1 + percent_per_year / 100
 
-    # TODO: calculate using formula?
     after_five_years = initial_deposit
     for _ in range(5):
         after_five_years *= per_year
