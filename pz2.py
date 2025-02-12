@@ -510,7 +510,10 @@ def task_f2() -> None:
 
 def task_f3() -> None:
     """Перевірка рядка, що складається з нулів і одиниць, на наявність в ній парного кількості нулів і парного кількості одиниць за допомогою регулярного виразу"""
-    # TODO
+    s = input("String: ")
+    if not re.match(r"^(?:[^1]*1[^1]*1)*[^1]*$", s) or not re.match(r"^(?:[^0]*0[^0]*0)*[^0]*$", s):
+        return print("No")
+    print("Yes")
 
 
 class _DisallowInheritanceMeta(type):
@@ -543,7 +546,7 @@ def main() -> None:
         #task_e1, task_e2, task_e3, task_e4, task_e5,
         #task_f1, task_f2, task_f3, task_f4,
 
-        task_a3,
+        task_f3,
     )
 
     for task_func in task_funcs:
