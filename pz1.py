@@ -465,17 +465,14 @@ def task_g1() -> None:
 
 
 def _check_all_zeros(mat: list[list[int]], x: int, y: int, w: int, h: int) -> bool:
-    if x + w + 1 <= 9:
-        w += 1
-    if y + h + 1 <= 9:
-        h += 1
-    if x >= 1:
-        x -= 1
-    if y >= 1:
-        y -= 1
-
-    for i in range(x, x + w + 1):
-        for j in range(y, y + h + 1):
+    for i in range(y - 1, y + h + 1):
+        if i >= 10 or i < 0:
+            continue
+        for j in range(x - 1, x + w + 1):
+            if j >= 10 \
+                    or j < 0 \
+                    or (i, j) in ((y - 1, x - 1), (y - 1, x + w), (y + h, x - 1), (y + h, x + w)):
+                continue
             if mat[i][j] != 0:
                 return False
 
@@ -489,8 +486,6 @@ def task_g2() -> None:
         for _ in range(10)
     ]
 
-    # TODO
-
     for ship_size in range(5, 0, -1):
         for _ in range(6 - ship_size):
             while True:
@@ -501,7 +496,7 @@ def task_g2() -> None:
                     if not _check_all_zeros(mat, x, y, 1, ship_size):
                         continue
                     for i in range(ship_size):
-                        mat[x][y + i] = ship_size
+                        mat[y + i][x] = ship_size
                     break
                 else:
                     if x + ship_size >= 10:
@@ -509,10 +504,8 @@ def task_g2() -> None:
                     if not _check_all_zeros(mat, x, y, ship_size, 1):
                         continue
                     for i in range(ship_size):
-                        mat[x + i][y] = ship_size
+                        mat[y][x + i] = ship_size
                     break
-
-            #_print_mat(mat)
 
     for row in mat:
         for idx, num in enumerate(row):
@@ -532,7 +525,7 @@ def main() -> None:
         #task_f1, task_f2, task_f3, task_f4, task_f5,
         #task_g1, task_g2,
 
-        task_g1,
+        task_g2,
     )
 
     for task_func in task_funcs:
