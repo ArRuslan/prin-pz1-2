@@ -419,46 +419,49 @@ def task_g1() -> None:
     A = ord("A")
     z = ord("z")
     Z = ord("Z")
-    slash = ord("/")
 
     az_range = range(a, z + 1)
     AZ_range = range(A, Z + 1)
 
+    other_replace = {
+        "/": "\n",
+        "(": "'",
+        "-": ",",
+        ".": "-",
+        "+": "*",
+        "\"": "!",
+    }
+
+    offset = 1
     key = 3
-
-    # TODO
-
-    for caesar_offset in range(26):
-        print(f"Offset: {caesar_offset}, deciphered: ", end="")
-        for word in words:
-            letters = []
-            for idx, letter in enumerate([ord(let) for let in word]):
-                if letter in az_range:
-                    letter_base = a
-                elif letter in AZ_range:
-                    letter_base = A
-                else:
-                    letters.append(letter)
-                    continue
-
-                letter_num = letter - letter_base
-                letter_num -= caesar_offset
-                letter_num %= 26
-
-                letters.append(letter_base + letter_num)
-
-            if not letters:
+    print(f"Offset: {offset}, deciphered: ")
+    for word in words:
+        new_word = ""
+        key_add = 0
+        for letter, char in map(lambda let: (let, ord(let)), word):
+            if char in az_range:
+                char_base = a
+            elif char in AZ_range:
+                char_base = A
+            else:
+                if letter == "/":
+                    key_add = 1
+                new_word += other_replace.get(letter, letter)
                 continue
 
-            pos = key % len(letters)
-            letters = letters[-pos:] + letters[:-pos]
+            char_num = char - char_base
+            char_num -= offset
+            char_num %= 26
 
-            if slash in letters:
-                key += 1
+            new_word += chr(char_base + char_num)
 
-            print("".join(map(chr, letters)), end=" ")
+        shift = key % len(new_word)
+        new_word = new_word[-shift:] + new_word[:-shift]
+        print(new_word, end=" ")
 
-        print()
+        key += key_add
+
+    print("\n")
 
 
 def _check_all_zeros(mat: list[list[int]], x: int, y: int, w: int, h: int) -> bool:
